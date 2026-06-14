@@ -1,0 +1,38 @@
+# Fly.io configuration for WC 2026 AI Predictor
+# Docs: https://fly.io/docs/reference/configuration/
+
+app = "wc26-predictor"
+primary_region = "iad"   # Washington DC — change to "lax" (LA) or "sjc" (San Jose) if preferred
+
+[build]
+  dockerfile = "Dockerfile"
+  target = "runner"      # production stage only
+
+[env]
+  PORT                  = "3000"
+  NODE_ENV              = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  FOOTBALL_DATA_SOURCE  = "live"
+  # Secrets (API keys, budget values) are set via: fly secrets set KEY=value
+  # Run ./deploy-fly.sh — it reads .env.local and sets them automatically
+
+[[mounts]]
+  source      = "wc26_data"   # persistent volume — cost tracker + prediction cache survive redeploys
+  destination = "/app/data"
+
+[http_service]
+  internal_port       = 3000
+  force_https         = true
+  auto_stop_machines  = true   # scale to zero when idle (free tier friendly)
+  auto_start_machines = true   # wake on first request (~3s cold start)
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory   = "512mb"   # 512MB: comfortable for Next.js standalone; free tier allows 256MB
+  cpu_kind = "shared"
+  cpus     = 1
