@@ -1,0 +1,22 @@
+# never bake secrets or build artefacts into the image
+.env*
+.env.local
+.env*.local
+
+# built by Docker itself
+node_modules
+.next
+
+# runtime data — volume-mounted at run time
+data/
+
+# dev tooling
+.git
+.gitignore
+.eslintrc*
+*.md
+.claude/
+
+# OS noise
+.DS_Store
+Thumbs.db
