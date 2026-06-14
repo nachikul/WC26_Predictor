@@ -36,12 +36,12 @@ fi
 
 # ─── Read app name from fly.toml ─────────────────────────────────────────────
 
-APP=$(grep '^app' fly.toml | sed 's/app = "\(.*\)"/\1/')
+APP=$(grep '^app' fly.toml | sed "s/app = ['\"]//;s/['\"].*//")
 echo "▸ App: $APP"
 
 # ─── Create persistent volume if it doesn't exist ────────────────────────────
 
-REGION=$(grep 'primary_region' fly.toml | sed 's/primary_region = "\(.*\)"/\1/')
+REGION=$(grep 'primary_region' fly.toml | sed "s/primary_region = ['\"]//;s/['\"].*//")
 
 if ! flyctl volumes list --app "$APP" 2>/dev/null | grep -q "wc26_data"; then
   echo "▸ Creating persistent volume (1GB) in $REGION..."
@@ -78,8 +78,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 done < "$ENV_FILE"
 
 if [[ ${#SECRETS[@]} -gt 0 ]]; then
-  flyctl secrets set "${SECRETS[@]}" --app "$APP" --stage
-  echo "✓ Secrets staged (applied on deploy)"
+  flyctl secrets set "${SECRETS[@]}" --app "$APP"
+  echo "✓ Secrets set (machine will restart to apply them)"
 else
   echo "  (no secrets found in $ENV_FILE)"
 fi
