@@ -50,10 +50,12 @@ COPY --from=builder /app/public          ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static    ./.next/static
 
-# data dir created here; on Fly.io this path is replaced by a persistent volume
-RUN mkdir -p data/predictions
+# entrypoint re-creates data dirs at runtime (Fly.io volume mount replaces /app/data)
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
-EXPOSE 3000
-ENV PORT=3000
+# Fly.io expects apps to listen on 0.0.0.0:8080
+EXPOSE 8080
+ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
-CMD ["node", "server.js"]
+CMD ["./docker-entrypoint.sh"]

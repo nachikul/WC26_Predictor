@@ -8,31 +8,32 @@ primary_region = 'syd'
 
 [build]
   dockerfile = 'Dockerfile'
+  target = 'runner'
 
 [env]
-  FOOTBALL_DATA_SOURCE = 'live'
+  PORT                    = '8080'
+  HOSTNAME                = '0.0.0.0'
+  NODE_ENV                = 'production'
   NEXT_TELEMETRY_DISABLED = '1'
-  NODE_ENV = 'production'
-  PORT = '3000'
+  FOOTBALL_DATA_SOURCE    = 'live'
 
 [[mounts]]
-  source = 'wc26_data'
+  source      = 'wc26_data'
   destination = '/app/data'
 
 [http_service]
-  internal_port = 8080
-  force_https = true
-  auto_stop_machines = 'stop'
+  internal_port       = 8080
+  force_https         = true
+  auto_stop_machines  = 'stop'
   auto_start_machines = true
   min_machines_running = 0
 
   [http_service.concurrency]
-    type = 'connections'
+    type       = 'connections'
     hard_limit = 25
     soft_limit = 20
 
 [[vm]]
-  memory = '512mb'
-  cpu_kind = 'shared'
-  cpus = 1
-  memory_mb = 1024
+  memory    = '512mb'
+  cpu_kind  = 'shared'
+  cpus      = 1
