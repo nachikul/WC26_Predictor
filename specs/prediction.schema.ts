@@ -37,7 +37,7 @@ export const ScorelinePredictionSchema = z.object({
   tacticalAnalysis: z.string(),      // 3–4 sentences
   alternativeScorelines: z.array(
     z.object({ home: z.number(), away: z.number(), probability: z.number() })
-  ).max(3),
+  ).max(8).transform(a => a.slice(0, 3)),
 })
 
 // ─── Full Match Prediction ──────────────────────────────────────────────────
