@@ -10,7 +10,7 @@ export const PlayerRatingSchema = z.object({
   team: z.string(),
   rating: z.number().min(0).max(10),
   shortReasoning: z.string(),    // 1–2 sentences shown in card
-  keyFactors: z.array(z.string()).min(1).max(3),  // bullet points
+  keyFactors: z.array(z.string()).min(1).max(5).transform(a => a.slice(0, 3)),
   formFactor: z.enum(['excellent', 'good', 'average', 'poor']),
   matchupAdvantage: z.enum(['strong', 'neutral', 'tough']),
   // contextual sub-ratings

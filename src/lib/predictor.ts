@@ -66,8 +66,18 @@ function parseAndValidate(raw: string, model: string): MatchPrediction {
 
   const result = MatchPredictionSchema.safeParse(parsed)
   if (!result.success) {
-    console.error('Validation errors:', result.error.issues)
-    throw new Error(`Prediction failed schema validation: ${result.error.issues[0]?.message}`)
+    const issues = result.error.issues.map(
+      i => `  [${i.path.join('.')}] ${i.code}: ${i.message}`
+    )
+    console.error(
+      `[predictor] Schema validation failed (${model}) — ${issues.length} issue(s):\n` +
+      issues.join('\n') +
+      `\n[predictor] Raw output (first 600 chars): ${raw.slice(0, 600)}`
+    )
+    throw new Error(
+      `Prediction failed schema validation — ${issues.length} issue(s): ` +
+      issues.join(' | ')
+    )
   }
 
   return result.data
