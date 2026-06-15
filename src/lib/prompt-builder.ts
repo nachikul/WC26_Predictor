@@ -1,5 +1,23 @@
 import type { Match, Player } from '../../specs/data.schema'
 
+// Pick a balanced starting XI: 1 GK, 4 DEF, 4 MID, 3 FWD.
+// The squad comes back from football-data.org ordered by position group,
+// so a naive slice(0,11) cuts off attackers like Salah (#22 in squad order).
+function pickStartingXI(squad: Player[]): Player[] {
+  const gk  = squad.filter(p => p.position === 'GK').slice(0, 1)
+  const def = squad.filter(p => p.position === 'DEF').slice(0, 4)
+  const mid = squad.filter(p => p.position === 'MID').slice(0, 4)
+  const fwd = squad.filter(p => p.position === 'FWD').slice(0, 3)
+  const xi  = [...gk, ...def, ...mid, ...fwd]
+  // If any position bucket was short, pad from whatever's left to reach 11
+  if (xi.length < 11) {
+    const picked = new Set(xi.map(p => p.id))
+    const rest   = squad.filter(p => !picked.has(p.id))
+    xi.push(...rest.slice(0, 11 - xi.length))
+  }
+  return xi.slice(0, 11)
+}
+
 function formatPlayer(p: Player): string {
   const hasStats = p.tournamentStats.appearances > 0
   const hasForm = p.recentForm.length > 0
@@ -41,13 +59,13 @@ function hasLimitedData(players: Player[]): boolean {
 }
 
 export function buildPredictionPrompt(match: Match): string {
-  const homeStarters = match.homeSquad.filter(p => p.isStarter).slice(0, 11)
-  const awayStarters = match.awaySquad.filter(p => p.isStarter).slice(0, 11)
+  const homeStarters = pickStartingXI(match.homeSquad)
+  const awayStarters = pickStartingXI(match.awaySquad)
 
   // If we got live API data with no stats, tell the AI to use its own knowledge
   const sparseData = hasLimitedData([...homeStarters, ...awayStarters])
   const knowledgeNote = sparseData
-    ? `\nNOTE: Detailed match stats are not available for these players. Draw on your training knowledge of each player's real-world form, playing style, club performances, and capabilities as of mid-2026 to inform your ratings.\n`
+    ? `\nNOTE: Detailed match stats are not available for these players. Draw on your training knowledge of each player's real-world form, playing style, club performances, and capabilities as of mid-2026 to inform your ratings. IMPORTANT: If you know a listed player is injured, suspended, or otherwise unavailable for WC2026, set their conditionScore to 3 or below and note the absence in shortReasoning — do not pretend they are fit.\n`
     : ''
 
   const weatherInfo = match.weather
